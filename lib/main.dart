@@ -48,56 +48,133 @@ class MyAppState extends ChangeNotifier {
 
 class MyHomePage extends StatelessWidget {
   @override
+  Widget build (BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          SafeArea(
+            child: NavigationRail(
+              extended: false,
+              destinations: [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home),
+                  label: Text('Home'), 
+                  ),
+              ],
+              selectedIndex: 0,
+              onDestinationSelected: (value) {
+                print('selected: $value');
+              },
+            ),
+          ),
+          Expanded(child: Container(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: GeneratorPage(),
+          ),
+          )
+          
+
+        ]
+      )
+    );
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
+  @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var pair = appState.current;
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+    IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
+    return Center(child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        BigCard(pair: pair),
+        SizedBox(height: 10),
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            BigCard(pair: pair),
-            //  SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    appState.toggleFavorite();
-                  },
-                  icon: Icon(
-                    appState.favorites.contains(pair)
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: appState.favorites.contains(pair)
-                        ? Colors.red
-                        : null,
-                    size: 24,
-                  ),
-                  label: Text(
-                    appState.favorites.contains(pair) ? 'Dislike' : 'Like',
-                  ),
-                ),
-                SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    print('button pressed!');
-                    // appState.current = WordPair.random();
-                    // appState.notifyListeners();
-                    appState.getNext();
-                  },
-                  child: Text('Next'),
-                ),
-              ],
+            ElevatedButton.icon(
+              onPressed: () {
+                appState.toggleFavorite();
+              },
+              icon: Icon(icon),
+              label: Text('Like'),
             ),
-          ],
-        ),
-      ),
+            SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                appState.getNext();
+              },
+              child: Text('Next'),
+            )
+          ]
+        )
+      ]
+    ),
     );
   }
 }
+
+// class MyHomePage extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     var appState = context.watch<MyAppState>();
+//     var pair = appState.current;
+
+//     return Scaffold(
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: [
+//             BigCard(pair: pair),
+//             //  SizedBox(height: 20),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 ElevatedButton.icon(
+//                   onPressed: () {
+//                     appState.toggleFavorite();
+//                   },
+//                   icon: Icon(
+//                     appState.favorites.contains(pair)
+//                         ? Icons.favorite
+//                         : Icons.favorite_border,
+//                     color: appState.favorites.contains(pair)
+//                         ? Colors.red
+//                         : null,
+//                     size: 24,
+//                   ),
+//                   label: Text(
+//                     appState.favorites.contains(pair) ? 'Dislike' : 'Like',
+//                   ),
+//                 ),
+//                 SizedBox(width: 20),
+//                 ElevatedButton(
+//                   onPressed: () {
+//                     print('button pressed!');
+//                     // appState.current = WordPair.random();
+//                     // appState.notifyListeners();
+//                     appState.getNext();
+//                   },
+//                   child: Text('Next'),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class BigCard extends StatelessWidget {
   const BigCard({super.key, required this.pair});
