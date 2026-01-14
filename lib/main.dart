@@ -44,6 +44,8 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  
 }
 
 class MyHomePage extends StatefulWidget {
@@ -154,6 +156,30 @@ class GeneratorPage extends StatelessWidget {
     );
   }
 }
+
+
+class Placeholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: ListView(
+        children: [
+          Center(
+            child: Text('You have ${appState.favorites.length} favorites.'),
+          ),
+          ...appState.favorites.map((favorite) => ListTile(
+            title: Text(favorite.asPascalCase),
+          ) ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
 
 
 // class MyHomePage extends StatelessWidget {
