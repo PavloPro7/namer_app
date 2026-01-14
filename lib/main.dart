@@ -44,8 +44,6 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  
 }
 
 class MyHomePage extends StatefulWidget {
@@ -63,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = GeneratorPage();
       case 1:
-        page = Placeholder();
+        page = FavoritesPage();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -157,30 +155,40 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
-
-class Placeholder extends StatelessWidget {
+class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: ListView(
-        children: [
-          Center(
-            child: Text('You have ${appState.favorites.length} favorites.'),
-          ),
-          ...appState.favorites.map((favorite) => ListTile(
+
+    if (appState.favorites.isEmpty) {
+      return Center(child: Text('No favorites yet.'));
+    } else {
+      return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have ${appState.favorites.length} favorites:'),
+        ),
+        // The .map function starts here
+        ...appState.favorites.map(
+          (favorite) => ListTile(
             title: Text(favorite.asPascalCase),
-          ) ),
-        ],
-      ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                // This uses the "singular" variable to target one item
+                appState.favorites.remove(favorite);
+                // You must call a function to refresh the UI
+                appState.getNext(); //notifyListeners();
+              },
+            ),
+          ),
+        ),
+      ],
     );
+    }
   }
 }
-
-
-
-
 
 // class MyHomePage extends StatelessWidget {
 //   @override
