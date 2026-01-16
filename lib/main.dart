@@ -98,10 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
             body: mainArea,
             bottomNavigationBar: NavigationBar(
               destinations: [
-                NavigationDestination(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
+                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
                 NavigationDestination(
                   icon: Icon(Icons.favorite),
                   label: 'Favorites',
@@ -140,9 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
-                Expanded(
-                  child: mainArea,
-                ),
+                Expanded(child: mainArea),
               ],
             ),
           );
@@ -169,6 +164,8 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(flex: 3, child: HistoryListView()),
+          SizedBox(height: 10),
           BigCard(pair: pair),
           SizedBox(height: 10),
           Row(
@@ -190,6 +187,7 @@ class GeneratorPage extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(flex: 2),
         ],
       ),
     );
@@ -199,40 +197,42 @@ class GeneratorPage extends StatelessWidget {
 class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
 
     if (appState.favorites.isEmpty) {
       return Center(child: Text('No favorites yet.'));
     } else {
-      return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('You have ${appState.favorites.length} favorites:'),
-        ),
-        // The .map function starts here
-        ...appState.favorites.map(
-          (favorite) => ListTile(
-            title: Text(favorite.asPascalCase),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                // This uses the "singular" variable to target one item
-                appState.favorites.remove(favorite);
-                // You must call a function to refresh the UI
-                appState.getNext(); //notifyListeners();
-              },
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(padding: const EdgeInsets.all(30),
+          child: Text('You have '
+          '${appState.favorites.length} favorites:'),
+          ),
+          Expanded(
+            child: GridView(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 400,
+                childAspectRatio: 400 / 80,
+              ),
+              children: [
+                for (var pair in appState.favorites)
+                  ListTile(
+                    leading: IconButton(
+                      icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
+                      color: theme.colorScheme.primary,
+                      onPressed: () {
+                        appState.removeFavorite(pair);
+                      },
+                    ),
+                    title: Text(pair.asPascalCase),
+                  ),
+              ],
             ),
           ),
-        ),
-
-        // for (var pair in appState.favorites)
-        //   ListTile(
-        //     leading: Icon(Icons.favorite),
-        //     title: Text(pair.asLowerCase),
-        //   ),
-      ],
-    );
+        ],
+      );
     }
   }
 }
@@ -328,15 +328,66 @@ class BigCard extends StatelessWidget {
                 Text(
                   pair.second,
                   style: style.copyWith(fontWeight: FontWeight.bold),
-                ),  
-              ]
-            )
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-    
-
-
   }
+}
+
+class HistoryListView extends StatefulWidget {
+  @override
+  State<HistoryListView> createState() => _HistoryListViewState();
+}
+
+class _HistoryListViewState extends State<HistoryListView> {
+  final _key = GlobalKey();
+  static const Gradient _maskingGradient = LinearGradient(
+    colors: [Colors.transparent, Colors.black],
+    stops: [0.0, 0.5],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+  
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
+    appState.historyListKey = _key;
+
+    return ShaderMask(
+      shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
+      // This blend mode takes the opacity of the shader (i.e. our gradient)
+      // and applies it to the destination (i.e. our animated list).
+      blendMode: BlendMode.dstIn,
+      child: AnimatedList(
+        key: _key,
+        reverse: true,
+        padding: EdgeInsets.only(top: 100),
+        initialItemCount: appState.history.length,
+        itemBuilder: (context, index, animation) {
+          final pair = appState.history[index];
+          return SizeTransition(
+            sizeFactor: animation,
+            child: Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite(pair);
+                },
+                icon: appState.favorites.contains(pair)
+                    ? Icon(Icons.favorite, size: 12)
+                    : SizedBox(),
+                label: Text(
+                  pair.asLowerCase,
+                  semanticsLabel: pair.asPascalCase,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+}
 }
